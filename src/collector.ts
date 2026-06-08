@@ -57,9 +57,13 @@ export async function handleMessage(data: CollectMessageRequest): Promise<void> 
       if (origin.msgType) {
         msgType = origin.msgType;
       }
-      // 将 originMsgContent 的内容作为实际 msgContent 存储
+      // richText 类型：提取 richText 数组
       if (origin.richText || origin.msgType === "richText") {
         msgContent = JSON.stringify({ richText: origin.richText });
+      }
+      // picture 类型：提取图片 URL 构造 JSON
+      if (origin.msgType === "picture" && origin.picture) {
+        msgContent = JSON.stringify({ pictureUrl: origin.picture, mediaId: origin.mediaId });
       }
     } catch {
       /* 解析失败，继续用原始 msgContent */

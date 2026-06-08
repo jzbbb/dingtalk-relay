@@ -72,8 +72,8 @@ export async function processPictureImage(
 
   try {
     const content = JSON.parse(msgContent);
-    // 铉铉图片消息可能的字段: downloadCode, photoURL, picURL
-    const downloadUrl = content.downloadCode || content.photoURL || content.picURL || "";
+    // 铉铉图片消息可能的字段: pictureUrl, downloadCode, photoURL, picURL
+    const downloadUrl = content.pictureUrl || content.downloadCode || content.photoURL || content.picURL || "";
 
     if (!downloadUrl) {
       console.warn(`[OSS] picture 消息未找到下载链接, 字段: ${Object.keys(content).join(",")}`);
