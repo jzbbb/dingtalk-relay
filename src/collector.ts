@@ -50,14 +50,30 @@ export async function handleMessage(data: CollectMessageRequest): Promise<void> 
   const conversationId = data.conversationId || "unknown";
   let msgContent = data.msgContent || "";
 
-  // 从 msgContent JSON 内部检测真实类型
-  try {
-    const parsed = JSON.parse(msgContent);
-    if (parsed.msgType && parsed.msgType !== msgType) {
-      msgType = parsed.msgType;
+  // 优先使用 originMsgContent（包含完整富文本 + 图片链接）
+  if (data.originMsgContent) {
+    try {
+      const origin = JSON.parse(data.originMsgContent);
+      if (origin.msgType) {
+        msgType = origin.msgType;
+      }
+      // 将 originMsgContent 的内容作为实际 msgContent 存储
+      if (origin.richText || origin.msgType === "richText") {
+        msgContent = JSON.stringify({ richText: origin.richText });
+      }
+    } catch {
+      /* 解析失败，继续用原始 msgContent */
     }
-  } catch {
-    /* 非 JSON，忽略 */
+  } else {
+    // 从 msgContent JSON 内部检测真实类型
+    try {
+      const parsed = JSON.parse(msgContent);
+      if (parsed.msgType && parsed.msgType !== msgType) {
+        msgType = parsed.msgType;
+      }
+    } catch {
+      /* 非 JSON，忽略 */
+    }
   }
 
   console.log(`[Collector] 消息类型=${msgType} | msgContent=${msgContent.slice(0, 300)}`);

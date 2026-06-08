@@ -6,6 +6,7 @@ export interface CollectMessageRequest {
   senderCorpId?: string;
   senderStaffId?: string;
   msgContent?: string;
+  originMsgContent?: string;
   messageAttribute?: string;
   conversationId?: string;
   sessionWebhook?: string;
