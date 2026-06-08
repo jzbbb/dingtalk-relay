@@ -32,6 +32,11 @@ function buildReadableText(msgContent: string, msgType: string): string {
       return parts.join("").trim();
     }
 
+    if (msgType === "picture") {
+      const url = parsed.ossUrl || parsed.pictureUrl || "";
+      return url ? `[图片: ${url}]` : "[图片]";
+    }
+
     if (msgType === "text") {
       return parsed.text || parsed.content || "";
     }
