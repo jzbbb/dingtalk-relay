@@ -1,5 +1,5 @@
 import { insertMessage } from "./db";
-import { processRichTextImages, processPictureImage } from "./oss";
+import { processRichTextImages, processPictureImage, processFileUpload } from "./oss";
 import type { CollectMessageRequest, ChatMessageRow } from "./types";
 
 function parseMsgType(messageAttribute?: string): string {
@@ -37,6 +37,12 @@ function buildReadableText(msgContent: string, msgType: string): string {
       return url ? `[图片: ${url}]` : "[图片]";
     }
 
+    if (msgType === "file") {
+      const fileName = parsed.fileName || "未知文件";
+      const url = parsed.ossUrl || parsed.tempDownLoadUrl || "";
+      return url ? `[文件: ${fileName}](${url})` : `[文件: ${fileName}]`;
+    }
+
     if (msgType === "text") {
       return parsed.text || parsed.content || "";
     }
@@ -70,6 +76,16 @@ export async function handleMessage(data: CollectMessageRequest): Promise<void> 
       if (origin.msgType === "picture" && origin.picture) {
         msgContent = JSON.stringify({ pictureUrl: origin.picture, mediaId: origin.mediaId });
       }
+      // file 类型：提取文件信息构造 JSON
+      if (origin.msgType === "file" && origin.file) {
+        msgContent = JSON.stringify({
+          fileName: origin.file.fileName,
+          tempDownLoadUrl: origin.file.tempDownLoadUrl,
+          fileId: origin.file.fileId,
+          spaceId: origin.file.spaceId,
+          dingPanFileLink: origin.file.dingPanFileLink,
+        });
+      }
     } catch {
       /* 解析失败，继续用原始 msgContent */
     }
@@ -95,6 +111,11 @@ export async function handleMessage(data: CollectMessageRequest): Promise<void> 
   // picture 类型：单张图片上传 OSS
   if (msgType === "picture" && msgContent) {
     msgContent = await processPictureImage(msgContent, conversationId);
+  }
+
+  // file 类型：文件上传 OSS
+  if (msgType === "file" && msgContent) {
+    msgContent = await processFileUpload(msgContent, conversationId);
   }
 
   const msgText = buildReadableText(msgContent, msgType);

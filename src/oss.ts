@@ -26,6 +26,16 @@ function guessExtension(url: string): string {
   return match ? match[1].toLowerCase() : "png";
 }
 
+function guessFileExtension(fileName: string, url: string): string {
+  // 优先从文件名获取后缀
+  const nameMatch = fileName.match(/\.([a-zA-Z0-9]+)$/);
+  if (nameMatch) return nameMatch[1].toLowerCase();
+  // 其次从 URL 获取
+  const pathPart = url.split("?")[0];
+  const urlMatch = pathPart.match(/\.([a-zA-Z0-9]+)$/);
+  return urlMatch ? urlMatch[1].toLowerCase() : "file";
+}
+
 export async function uploadImageToOss(
   downloadUrl: string,
   conversationId: string,
@@ -123,6 +133,52 @@ export async function processRichTextImages(
     }
   } catch {
     // JSON 解析失败，原样返回
+  }
+
+  return msgContent;
+}
+
+/**
+ * 处理文件类型消息：下载文件并上传到 OSS
+ */
+export async function processFileUpload(
+  msgContent: string,
+  conversationId: string,
+): Promise<string> {
+  const client = getOssClient();
+  if (!client) return msgContent;
+
+  try {
+    const content = JSON.parse(msgContent);
+    const downloadUrl = content.tempDownLoadUrl || "";
+    const fileName = content.fileName || "unknown";
+
+    if (!downloadUrl) {
+      console.warn(`[OSS] file 消息未找到下载链接, 字段: ${Object.keys(content).join(",")}`);
+      return msgContent;
+    }
+
+    const response = await fetch(downloadUrl);
+    if (!response.ok) {
+      console.warn(`[OSS] 文件下载失败: HTTP ${response.status}`);
+      return msgContent;
+    }
+
+    const buffer = Buffer.from(await response.arrayBuffer());
+    const timestamp = Date.now();
+    const random = Math.random().toString(36).slice(2, 8);
+    const extension = guessFileExtension(fileName, downloadUrl);
+    const safeConvId = conversationId.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+    const ossKey = `chat-files/${safeConvId}/${timestamp}_${random}.${extension}`;
+
+    const result = await client.put(ossKey, buffer);
+    console.log(`[OSS] 文件已上传 | key=${ossKey} | fileName=${fileName} | size=${buffer.length}`);
+
+    content.ossUrl = result.url;
+    return JSON.stringify(content);
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error(`[OSS] file 处理失败: ${errorMessage}`);
   }
 
   return msgContent;
