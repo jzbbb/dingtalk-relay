@@ -1,0 +1,14 @@
+{
+  "name": "dingtalk-relay",
+  "version": "1.0.0",
+  "description": "钉钉消息中转服务 - ECS 接收回调，WebSocket 推送到内网",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "ws": "^8.18.0"
+  }
+}
