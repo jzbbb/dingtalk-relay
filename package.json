@@ -1,14 +1,25 @@
 {
   "name": "dingtalk-relay",
-  "version": "1.0.0",
-  "description": "钉钉消息中转服务 - ECS 接收回调，WebSocket 推送到内网",
-  "main": "src/server.js",
+  "version": "2.0.0",
+  "description": "钉钉群消息收集服务 - 接收回调 + MySQL存储 + OSS图片持久化 + 查询API",
   "scripts": {
-    "start": "node src/server.js",
-    "dev": "node --watch src/server.js"
+    "start": "tsx src/server.ts",
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc",
+    "start:prod": "node dist/server.js"
   },
   "dependencies": {
+    "ali-oss": "^6.21.0",
+    "dotenv": "^16.4.0",
     "express": "^4.21.0",
+    "mysql2": "^3.11.0",
     "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.0.0",
+    "@types/ws": "^8.5.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
   }
 }
