@@ -22,8 +22,7 @@ function getPool(): Pool {
 }
 
 function toTableName(conversationId: string): string {
-  const sanitized = conversationId.replace(/[^a-zA-Z0-9]/g, "_").slice(0, 48);
-  return `msg_${sanitized}`;
+  return `msg_${conversationId}`;
 }
 
 function escapeComment(text: string): string {
@@ -111,7 +110,7 @@ export async function queryMessages(
   if (tables.length === 0) return [];
 
   let sql = `SELECT * FROM \`${tableName}\` WHERE 1=1`;
-  const params: (string | number)[] = [];
+  const params: string[] = [];
 
   if (staffId) {
     sql += " AND sender_staff_id = ?";
@@ -127,7 +126,7 @@ export async function queryMessages(
   }
 
   sql += " ORDER BY received_at DESC LIMIT ? OFFSET ?";
-  params.push(limit, offset);
+  params.push(String(limit), String(offset));
 
   const [rows] = await getPool().execute<RowDataPacket[]>(sql, params);
   return rows;

@@ -24,14 +24,14 @@ fi
 
 echo "📦 安装依赖..."
 npm config set registry https://registry.npmmirror.com
-npm install --omit=dev
+npm install
 
 echo "🔧 安装 PM2..."
 npm install -g pm2 2>/dev/null || true
 
 echo "🚀 启动服务..."
 pm2 delete dingtalk-relay 2>/dev/null || true
-pm2 start src/server.js --name dingtalk-relay
+pm2 start npx --name dingtalk-relay -- tsx src/server.ts
 pm2 save
 pm2 startup 2>/dev/null || true
 

@@ -44,7 +44,7 @@ export async function uploadImageToOss(
     const timestamp = Date.now();
     const random = Math.random().toString(36).slice(2, 8);
     const extension = guessExtension(downloadUrl);
-    const safeConvId = conversationId.replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 64);
+    const safeConvId = conversationId.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
     const ossKey = `chat-images/${safeConvId}/${timestamp}_${random}.${extension}`;
 
     const result = await client.put(ossKey, buffer);
