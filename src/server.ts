@@ -67,6 +67,7 @@ app.post("/api/v1/actions/dingtalk/collect_chat_message", (req, res) => {
   const msgContent = data.msgContent || "";
 
   console.log(`[收到消息] ${senderNick}: ${msgContent.slice(0, 100)}`);
+  console.log(`[DEBUG 完整请求体] ${JSON.stringify(req.body).slice(0, 2000)}`);
 
   handleMessage(data).catch((err: Error) => {
     console.error(`[Collector] 处理失败: ${err.message}`);

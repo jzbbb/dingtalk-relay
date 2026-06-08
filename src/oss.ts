@@ -63,6 +63,37 @@ interface RichTextItem {
   ossUrl?: string;
 }
 
+export async function processPictureImage(
+  msgContent: string,
+  conversationId: string,
+): Promise<string> {
+  const client = getOssClient();
+  if (!client) return msgContent;
+
+  try {
+    const content = JSON.parse(msgContent);
+    // 铉铉图片消息可能的字段: downloadCode, photoURL, picURL
+    const downloadUrl = content.downloadCode || content.photoURL || content.picURL || "";
+
+    if (!downloadUrl) {
+      console.warn(`[OSS] picture 消息未找到下载链接, 字段: ${Object.keys(content).join(",")}`);
+      return msgContent;
+    }
+
+    console.log(`[OSS] 尝试下载图片: ${downloadUrl.slice(0, 100)}`);
+    const ossUrl = await uploadImageToOss(downloadUrl, conversationId);
+    if (ossUrl) {
+      content.ossUrl = ossUrl;
+      return JSON.stringify(content);
+    }
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error(`[OSS] picture 处理失败: ${errorMessage}`);
+  }
+
+  return msgContent;
+}
+
 export async function processRichTextImages(
   msgContent: string,
   conversationId: string,

@@ -1,5 +1,5 @@
 import { insertMessage } from "./db";
-import { processRichTextImages } from "./oss";
+import { processRichTextImages, processPictureImage } from "./oss";
 import type { CollectMessageRequest, ChatMessageRow } from "./types";
 
 function parseMsgType(messageAttribute?: string): string {
@@ -60,9 +60,16 @@ export async function handleMessage(data: CollectMessageRequest): Promise<void> 
     /* 非 JSON，忽略 */
   }
 
+  console.log(`[Collector] 消息类型=${msgType} | msgContent=${msgContent.slice(0, 300)}`);
+
   // richText 类型：图片上传 OSS
   if (msgType === "richText" && msgContent) {
     msgContent = await processRichTextImages(msgContent, conversationId);
+  }
+
+  // picture 类型：单张图片上传 OSS
+  if (msgType === "picture" && msgContent) {
+    msgContent = await processPictureImage(msgContent, conversationId);
   }
 
   const msgText = buildReadableText(msgContent, msgType);
